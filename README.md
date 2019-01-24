@@ -8,6 +8,7 @@ Candles = {"open":[list of open prices],"high":[list of high prices],"low":[list
 - BB
 - RSI
 - StochRSI
+- Stochastic Oscillator
 - SMA
 - EMA
 - SS
