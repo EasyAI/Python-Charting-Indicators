@@ -4,19 +4,21 @@
 This repository contains a file used to calculate different indicators that can be used and plotted to graphs or for live calculations. THe current list of included indicators will be listed below.
 
 ### Indicators List ###
-- BB
-- RSI
+- Bollinger Bands (BB)
+- Relative Strength Index (RSI)
 - StochRSI
 - Stochastic Oscillator
-- SMA
-- EMA
+- Simple Moving Average (SMA)
+- Exponential Moving Average (EMA)
 - SS
-- MACD
+- Moving Average Convergence Divergence (MACD)
 - TR
 - ATR
 - DM
-- ADX_DI
-- Ichimoku
+- Average Directional Index (ADX DI)
+- Ichimoku Cloud
+- Force Index
+- Commodity Channel Index (CCI)
 
 ### Repository Contains:
 - TradeIndicators.py : This contains the main logic for calculation of the indicators.
@@ -24,12 +26,12 @@ This repository contains a file used to calculate different indicators that can 
 ## Usage
 The way that the data should be put threw in the case of requiring multiple elementes of the candle sticks, you'll need to style the lists to a dictionary formal like shown below:
 
-Candles = {
-    "open":[list of open prices],
-    "high":[list of high prices],
-    "low":[list of low prices],
-    "close":[list of close prices],
-    "volume":[list of volume]}
+candles = [[unix open time,
+    open price,
+    high price,
+    low price,
+    close price,
+    volume], ...]
 
 ### Contact
 EMAIL: jlennie1996@gmail.com
