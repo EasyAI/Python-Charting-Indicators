@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-import sys
 import time
 import numpy as np
 
@@ -29,7 +28,7 @@ import numpy as np
 
 
 ## This function is used to calculate and return the Bollinger Band indicator.
-def get_BOLL(prices, ma_type=21, rtype="numpy"):
+def get_BOLL(prices, ma_type=21):
 	"""
 	This function uses 2 parameters to calculate the BB-
 	
@@ -54,17 +53,15 @@ def get_BOLL(prices, ma_type=21, rtype="numpy"):
 	BTop = np.array([sma[i] + (stdev[i] * 2) for i in range(span)])
 	BBot = np.array([sma[i] - (stdev[i] * 2) for i in range(span)])
 
-	if rtype == "numpy":
-		return np.array([BTop, sma, BBot]).round(8)
-	elif rtype == "normal":
-		return [{
-			"T":BTop[i], 
-			"M":sma[i], 
-			"B":BBot[i]} for i in range(span)]
+
+	return [{
+		"T":BTop[i], 
+		"M":sma[i], 
+		"B":BBot[i]} for i in range(span)]
 
 
 ## This function is used to calculate and return the RSI indicator.
-def get_RSI(prices, rsiType=14, rtype="numpy"):
+def get_RSI(prices, rsiType=14):
 	""" 
 	This function uses 2 parameters to calculate the RSI-
 	
@@ -108,13 +105,10 @@ def get_RSI(prices, rsiType=14, rtype="numpy"):
 
 	fRSI = np.flipud(np.array(rsi[rsiType:]))
 
-	if rtype == "numpy":
-		return fRSI.round(2)
-	elif rtype == "normal":
-		return list(fRSI)
+	return fRSI.round(2)
 
 
-def get_stochastics(priceClose, priceHigh, priceLow, period=14, rtype="numpy"):
+def get_stochastics(priceClose, priceHigh, priceLow, period=14):
 
 	span = len(priceClose)-period
 	stochastic = np.array([[priceHigh[i:period+i].max()-priceLow[i:period+i].min(), priceClose[i]-priceLow[i:period+i].min()] for i in range(span)])
@@ -123,7 +117,7 @@ def get_stochastics(priceClose, priceHigh, priceLow, period=14, rtype="numpy"):
 
 
 ## This function is used to calculate and return the stochastics RSI indicator.
-def get_stochRSI(prices, rsiPrim=14, rsiSecon=14, K=3, D=3, rtype="numpy"):
+def get_stochRSI(prices, rsiPrim=14, rsiSecon=14, K=3, D=3):
 	"""
 	This function uses 3 parameters to calculate the  Stochastics RSI-
 	
@@ -144,11 +138,11 @@ def get_stochRSI(prices, rsiPrim=14, rsiSecon=14, K=3, D=3, rtype="numpy"):
 	span = len(prices)-rsiPrim-rsiSecon-K
 	RSI = get_RSI(prices, rsiType=rsiPrim)
 	
-	return get_S_O(RSI, RSI, RSI, period=rsiSecon, K=K, D=D, rtype=rtype)
+	return get_S_O(RSI, RSI, RSI, period=rsiSecon, K=K, D=D)
 
 
 ## This function is used to calculate and return the Stochastic Oscillator indicator.
-def get_S_O(priceClose, priceHigh, priceLow, period=14, K=3, D=3, rtype="numpy"):
+def get_S_O(priceClose, priceHigh, priceLow, period=14, K=3, D=3):
 	"""
 	This function uses 5 parameters to calculate the  Stochastic Oscillator-
 	
@@ -168,6 +162,10 @@ def get_S_O(priceClose, priceHigh, priceLow, period=14, K=3, D=3, rtype="numpy")
 		"%D":float
 		}, ... ]
 	"""
+	priceClose = np.array(priceClose)
+	priceHigh = np.array(priceHigh)
+	priceLow = np.array(priceLow)
+
 	span = len(priceClose)-period
 	stochastic = get_stochastics(priceClose, priceHigh, priceLow, period)
 
@@ -176,16 +174,13 @@ def get_S_O(priceClose, priceHigh, priceLow, period=14, K=3, D=3, rtype="numpy")
 	sto_K = get_SMA(HL_CL, K)
 	sto_D = get_SMA(sto_K, D)
 
-	if rtype == "numpy":
-		return np.array([sto_K, sto_D])
-	elif rtype == "normal":
-		return [{
-			"%K":sto_K[i], 
-			"%D":sto_D[i]} for i in range(len(sto_D))]
+	return [{
+		"%K":sto_K[i], 
+		"%D":sto_D[i]} for i in range(len(sto_D))]
 
 
 ## This function is used to calculate and return SMA.
-def get_SMA(prices, maPeriod, rtype="numpy"):
+def get_SMA(prices, maPeriod):
 	"""
 	This function uses 3 parameters to calculate the Simple Moving Average-
 	
@@ -206,14 +201,12 @@ def get_SMA(prices, maPeriod, rtype="numpy"):
 	span = len(prices) - maPeriod + 1
 	ma_list = np.array([np.mean(prices[i:(maPeriod+i)]) for i in range(span)])
 
-	if rtype == "numpy":
-		return ma_list.round(8)
-	elif rtype == "normal":
-		return list(ma_list.round(8))
+
+	return ma_list.round(8)
 
 
 ## This function is used to calculate and return EMA.
-def get_EMA(prices, maPeriod, rtype="numpy"):
+def get_EMA(prices, maPeriod):
 	"""
 	This function uses 3 parameters to calculate the Exponential Moving Average-
 	
@@ -242,15 +235,12 @@ def get_EMA(prices, maPeriod, rtype="numpy"):
 	for i in range(1, span):
 		EMA[i] = (EMA[i-1] + weight * (prices[span-i-1] - EMA[i-1]))
 
-	if rtype == "numpy":
-		return np.flipud(EMA.round(8))
-	elif rtype == "normal":
-		return list(reverse(EMA.round(8)))
 
+	return np.flipud(EMA.round(8))
 
 
 ## This function is used to calculate and return Rolling Moving Average.
-def get_RMA(prices, maPeriod, rtype="numpy"):
+def get_RMA(prices, maPeriod):
 	"""
 	This function uses 3 parameters to calculate the Rolling Moving Average-
 	
@@ -277,15 +267,11 @@ def get_RMA(prices, maPeriod, rtype="numpy"):
 	for i in range(1, span):
 		SS[i] = ((SS[i-1] * (maPeriod-1)) + prices[span-i-1]) / maPeriod
 
-	if rtype == "numpy":
-		return np.flipud(SS.round(8))
-	elif rtype == "normal":
-		return list(reverse(SS.round(8)))
-
+	return np.flipud(SS.round(8))
 
 
 ## This function is used to calculate and return the the MACD indicator.
-def get_MACD(prices, Efast=12, Eslow=26, signal=9, rtype="numpy"):
+def get_MACD(prices, Efast=12, Eslow=26, signal=9):
 	"""
 	This function uses 5 parameters to calculate the Moving Average Convergence/Divergence-
 	
@@ -315,14 +301,10 @@ def get_MACD(prices, Efast=12, Eslow=26, signal=9, rtype="numpy"):
 	signalLine = get_EMA(macdLine, signal)
 	histogram = np.subtract(macdLine[:len(signalLine)], signalLine)
 
-	if rtype == "numpy":
-		return [fastMACD, signalLine, histogram]
-	elif rtype == "normal":
-		return [({
-			"macd":"{0:.8f}".format(macdLine[i]), 
-			"signal":"{0:.8f}".format(signalLine[i]), 
-			"hist":"{0:.8f}".format(histogram[i])}) for i in range(len(signalLine))]
-
+	return [({
+		"macd":float("{0:.8f}".format(macdLine[i])), 
+		"signal":float("{0:.8f}".format(signalLine[i])), 
+		"hist":float("{0:.8f}".format(histogram[i]))}) for i in range(len(signalLine))]
 
 
 ## This function is used to calculate and return the True Range.
@@ -343,9 +325,9 @@ def get_trueRange(candles):
 		float,
 		... ]
 	"""
-	highPrices = [candle[2].astype(np.float) for candle in candles]
-	lowPrices = [candle[3].astype(np.float) for candle in candles]
-	closePrices = [candle[4].astype(np.float) for candle in candles]
+	highPrices = [candle[2] for candle in candles]
+	lowPrices = [candle[3] for candle in candles]
+	closePrices = [candle[4] for candle in candles]
 	span = len(closePrices) - 1
 	trueRange = []
 
@@ -359,7 +341,6 @@ def get_trueRange(candles):
 		trueRange.append(max([HL, H_PC, L_PC]))
 
 	return trueRange
-
 
 
 ## This function is used to calculate and return the Average True Range.
@@ -405,8 +386,8 @@ def get_DM(candles):
 		float
 		], ... ]
 	"""
-	highPrices = [candle[2].astype(np.float) for candle in candles]
-	lowPrices = [candle[3].astype(np.float) for candle in candles]
+	highPrices = [candle[2] for candle in candles]
+	lowPrices = [candle[3] for candle in candles]
 	span = len(highPrices) - 1
 	PDM = np.zeros_like(highPrices[:span])
 	NDM = np.zeros_like(highPrices[:span])
@@ -423,9 +404,8 @@ def get_DM(candles):
 	return [PDM, NDM]
 
 
-
 ## This function is used to calculate and return the ADX indicator.
-def get_ADX_DI(candles, adxLen=14, rtype="numpy"):
+def get_ADX_DI(rCandles, adxLen=14, dataType="numpy"):
 	"""
 	This function uses 4 parameters to calculate the ADX-
 
@@ -445,10 +425,21 @@ def get_ADX_DI(candles, adxLen=14, rtype="numpy"):
 		'-DI':float
 		}, ... ]
 	"""
-	baseIndLen = adxLen
-	ADX_DI 	= []
 
-	DM 	= get_DM(candles)
+	if dataType == "normal":
+		candles = np.array([[0, 
+			rCandles["open"][i],
+			rCandles["high"][i],
+			rCandles["low"][i],
+			rCandles["close"][i]]for i in range(len(rCandles["open"]))]).astype(np.float)
+
+	elif dataType == "numpy":
+		candles = rCandles
+
+	baseIndLen = adxLen
+	ADX_DI = []
+
+	DM = get_DM(candles)
 	ATR = get_ATR(candles, baseIndLen)
 	PDM = get_RMA(DM[0], baseIndLen)
 	NDM = get_RMA(DM[1], baseIndLen)
@@ -461,18 +452,14 @@ def get_ADX_DI(candles, adxLen=14, rtype="numpy"):
 
 	ADX = get_SMA(DI, adxLen)
 
-	if rtype == "numpy":
-		return [ADX, PDI, NDI]
-	elif rtype == "normal":
-		return [({
-			"ADX":float("{0:.2f}".format(ADX[i])), 
-			"+DI":float("{0:.2f}".format(PDI[i])), 
-			"-DI":float("{0:.2f}".format(NDI[i]))}) for i in range(len(ADX))]
-
+	return [({
+		"ADX":float("{0:.2f}".format(ADX[i])), 
+		"+DI":float("{0:.2f}".format(PDI[i])), 
+		"-DI":float("{0:.2f}".format(NDI[i]))}) for i in range(len(ADX))]
 
 
 ## This function is used to calculate and return the ichimoku indicator.
-def get_Ichimoku(candles, tS_type=9, kS_type=26, sSB_type=52, rtype="numpy"):
+def get_Ichimoku(candles, tS_type=9, kS_type=26, sSB_type=52, dataType="numpy"):
 	"""
 	This function uses 5 parameters to calculate the Ichimoku Cloud-
 
@@ -496,10 +483,17 @@ def get_Ichimoku(candles, tS_type=9, kS_type=26, sSB_type=52, rtype="numpy"):
 		'Chikou':float
 		}, ... ]
 	"""
+	if dataType == "normal":
+		highPrices = np.array(candles["high"]).astype(np.float)
+		lowPrices = np.array(candles["low"]).astype(np.float)
+		closePrices = np.array(candles["close"]).astype(np.float)
+
+	elif dataType == "numpy":
+		highPrices = [candle[2].astype(np.float) for candle in candles]
+		lowPrices = [candle[3].astype(np.float) for candle in candles]
+		closePrices = [candle[4].astype(np.float) for candle in candles]
+
 	ichimoku = []
-	highPrices = [candle[2].astype(np.float) for candle in candles]
-	lowPrices = [candle[3].astype(np.float) for candle in candles]
-	closePrices = [candle[4].astype(np.float) for candle in candles]
 	span = len(lowPrices)
 
 	tS = [((max(highPrices[i:tS_type+i]) + min(lowPrices[i:tS_type+i])) / 2) for i in range(span)]
@@ -509,14 +503,80 @@ def get_Ichimoku(candles, tS_type=9, kS_type=26, sSB_type=52, rtype="numpy"):
 
 	sSB = [((max(highPrices[i:sSB_type+i]) + min(lowPrices[i:sSB_type+i])) / 2) for i in range(span)]
 
-	if rtype == "numpy":
-		return [tS, kS, sSA, sSB, closePrices]
+	return [({
+		"Tenkan":float("{0:.8f}".format(tS[i])),
+		"Kijun":float("{0:.8f}".format(kS[i])),
+		"Senkou A":float("{0:.8f}".format(sSA[i])),
+		"Senkou B":float("{0:.8f}".format(sSB[i])),
+		"Chikou":float("{0:.8f}".format(closePrices[i]))}) for i in range(span)]
 
-	elif rtype == "normal":
-		return [({
-			"Tenkan":float("{0:.8f}".format(tS[i])),
-			"Kijun":float("{0:.8f}".format(kS[i])),
-			"Senkou A":float("{0:.8f}".format(sSA[i])),
-			"Senkou B":float("{0:.8f}".format(sSB[i])),
-			"Chikou":float("{0:.8f}".format(closePrices[i]))}) for i in range(span)]
 
+def get_CCI(rCandles, period=9, constant=0.015, dataType="numpy"):
+	"""
+	CCI = (Typical Price  -  20-period SMA of TP) / (.015 x Mean Deviation)
+
+	Typical Price (TP) = (High + Low + Close)/3
+
+	Constant = .015
+
+	"""
+	if dataType == "normal":
+		candles = np.array([[0, 
+				rCandles["open"][i],
+				rCandles["high"][i],
+				rCandles["low"][i],
+				rCandles["close"][i]]for i in range(len(rCandles["open"]))]).astype(np.float)
+
+	elif dataType == "numpy":
+		candles = rCandles
+
+	CCI = []
+	typicalPrice = np.array([((candle[2] + candle[3] + candle[4]) / 3) for candle in candles])
+
+	MD = get_Mean_Deviation(typicalPrice, period)
+	smTP = get_SMA(typicalPrice, period)
+
+	for i in range(len(MD)):
+		CCI.append((typicalPrice[i] - smTP[i]) / (constant * MD[i]))
+
+	return(CCI)
+
+
+def get_Mean_Deviation(prices, period):
+	"""
+	There are four steps to calculating the Mean Deviation: 
+	First, subtract the most recent 20-period average of the typical price from each period's typical price. 
+	Second, take the absolute values of these numbers. 
+	Third, sum the absolute values. 
+	Fourth, divide by the total number of periods (20).
+	"""
+
+	partOneTwo = []
+	partThreeFour = []
+
+	ma = get_SMA(prices, period)
+
+	partOneTwo = [abs(prices[i] - ma[i]) for i in range(len(ma))]
+
+	for i in range(len(partOneTwo)):
+		total = 0
+		for i in partOneTwo[i:i+period]:
+			total = total + i
+
+		partThreeFour.append(total / period)
+
+	return(partThreeFour)
+
+
+def get_Force_Index(cPrices, volume, maPeriod=9):
+	"""
+	Force Index(1) = {Close (current period)  -  Close (prior period)} x Volume
+	Force Index(13) = 13-period EMA of Force Index(1)
+	"""
+	span = len(cPrices) - 1
+
+	baseValues = [(cPrices[i] - cPrices[i+1])*volume[i] for i in range(span)]
+
+	forceIndex = get_EMA(baseValues, maPeriod)
+
+	return(forceIndex)
