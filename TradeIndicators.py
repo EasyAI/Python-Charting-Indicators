@@ -28,7 +28,7 @@ import numpy as np
 
 
 ## This function is used to calculate and return the Bollinger Band indicator.
-def get_BOLL(prices, ma_type=21):
+def get_BOLL(prices, ma_type=21, stDev=2):
 	"""
 	This function uses 2 parameters to calculate the BB-
 	
@@ -50,8 +50,8 @@ def get_BOLL(prices, ma_type=21):
 	stdev = np.array([np.std(prices[i:(ma_type+i)+1]) for i in range(span)])
 	sma = get_SMA(prices, ma_type)
 
-	BTop = np.array([sma[i] + (stdev[i] * 2) for i in range(span)])
-	BBot = np.array([sma[i] - (stdev[i] * 2) for i in range(span)])
+	BTop = np.array([sma[i] + (stdev[i] * stDev) for i in range(span)])
+	BBot = np.array([sma[i] - (stdev[i] * stDev) for i in range(span)])
 
 
 	return [{
@@ -201,7 +201,6 @@ def get_SMA(prices, maPeriod):
 	span = len(prices) - maPeriod + 1
 	ma_list = np.array([np.mean(prices[i:(maPeriod+i)]) for i in range(span)])
 
-
 	return ma_list.round(8)
 
 
@@ -234,7 +233,6 @@ def get_EMA(prices, maPeriod):
 
 	for i in range(1, span):
 		EMA[i] = (EMA[i-1] + weight * (prices[span-i-1] - EMA[i-1]))
-
 
 	return np.flipud(EMA.round(8))
 
@@ -407,7 +405,7 @@ def get_DM(candles):
 ## This function is used to calculate and return the ADX indicator.
 def get_ADX_DI(rCandles, adxLen=14, dataType="numpy"):
 	"""
-	This function uses 4 parameters to calculate the ADX-
+	This function uses 3 parameters to calculate the ADX-
 
 	[PARAMETERS]
 		candles	: Dict of candles.
@@ -511,7 +509,7 @@ def get_Ichimoku(candles, tS_type=9, kS_type=26, sSB_type=52, dataType="numpy"):
 		"Chikou":float("{0:.8f}".format(closePrices[i]))}) for i in range(span)]
 
 
-def get_CCI(rCandles, period=9, constant=0.015, dataType="numpy"):
+def get_CCI(rCandles, period=20, constant=0.015, dataType="numpy"):
 	"""
 	CCI = (Typical Price  -  20-period SMA of TP) / (.015 x Mean Deviation)
 
@@ -533,16 +531,16 @@ def get_CCI(rCandles, period=9, constant=0.015, dataType="numpy"):
 	CCI = []
 	typicalPrice = np.array([((candle[2] + candle[3] + candle[4]) / 3) for candle in candles])
 
-	MD = get_Mean_Deviation(typicalPrice, period)
+	MAD = get_Mean_ABS_Deviation(typicalPrice, period)
 	smTP = get_SMA(typicalPrice, period)
 
-	for i in range(len(MD)):
-		CCI.append((typicalPrice[i] - smTP[i]) / (constant * MD[i]))
+	for i in range(len(MAD)):
+		CCI.append(((typicalPrice[i] - smTP[i]) / (constant * MAD[i])).round(2))
 
 	return(CCI)
 
 
-def get_Mean_Deviation(prices, period):
+def get_Mean_ABS_Deviation(prices, period):
 	"""
 	There are four steps to calculating the Mean Deviation: 
 	First, subtract the most recent 20-period average of the typical price from each period's typical price. 
@@ -550,22 +548,18 @@ def get_Mean_Deviation(prices, period):
 	Third, sum the absolute values. 
 	Fourth, divide by the total number of periods (20).
 	"""
-
 	partOneTwo = []
 	partThreeFour = []
 
-	ma = get_SMA(prices, period)
+	sma = get_SMA(prices, period)
 
-	partOneTwo = [abs(prices[i] - ma[i]) for i in range(len(ma))]
+	for i,ma in enumerate(sma):
+		partTwo = [abs(price - ma) for price in prices[i:i+period]]
 
-	for i in range(len(partOneTwo)):
-		total = 0
-		for i in partOneTwo[i:i+period]:
-			total = total + i
-
-		partThreeFour.append(total / period)
+		partThreeFour.append(np.mean(partTwo))
 
 	return(partThreeFour)
+
 
 
 def get_Force_Index(cPrices, volume, maPeriod=9):
