@@ -180,7 +180,7 @@ def get_S_O(priceClose, priceHigh, priceLow, period=14, K=3, D=3):
 
 
 ## This function is used to calculate and return SMA.
-def get_SMA(prices, maPeriod):
+def get_SMA(prices, maPeriod, prec=8):
 	"""
 	This function uses 3 parameters to calculate the Simple Moving Average-
 	
@@ -201,11 +201,11 @@ def get_SMA(prices, maPeriod):
 	span = len(prices) - maPeriod + 1
 	ma_list = np.array([np.mean(prices[i:(maPeriod+i)]) for i in range(span)])
 
-	return ma_list.round(8)
+	return ma_list.round(prec)
 
 
 ## This function is used to calculate and return EMA.
-def get_EMA(prices, maPeriod):
+def get_EMA(prices, maPeriod, prec=8):
 	"""
 	This function uses 3 parameters to calculate the Exponential Moving Average-
 	
@@ -234,11 +234,11 @@ def get_EMA(prices, maPeriod):
 	for i in range(1, span):
 		EMA[i] = (EMA[i-1] + weight * (prices[span-i-1] - EMA[i-1]))
 
-	return np.flipud(EMA.round(8))
+	return np.flipud(EMA.round(prec))
 
 
 ## This function is used to calculate and return Rolling Moving Average.
-def get_RMA(prices, maPeriod):
+def get_RMA(prices, maPeriod, prec=8):
 	"""
 	This function uses 3 parameters to calculate the Rolling Moving Average-
 	
@@ -265,7 +265,7 @@ def get_RMA(prices, maPeriod):
 	for i in range(1, span):
 		SS[i] = ((SS[i-1] * (maPeriod-1)) + prices[span-i-1]) / maPeriod
 
-	return np.flipud(SS.round(8))
+	return np.flipud(SS.round(prec))
 
 
 ## This function is used to calculate and return the the MACD indicator.
@@ -509,8 +509,10 @@ def get_Ichimoku(candles, tS_type=9, kS_type=26, sSB_type=52, dataType="numpy"):
 		"Chikou":float("{0:.8f}".format(closePrices[i]))}) for i in range(span)]
 
 
-def get_CCI(rCandles, period=20, constant=0.015, dataType="numpy"):
+def get_CCI(rCandles, source, period=20, constant=0.015, dataType="numpy"):
 	"""
+	source is refering too where the typical price will come from. (high, low, close, all)
+
 	CCI = (Typical Price  -  20-period SMA of TP) / (.015 x Mean Deviation)
 
 	Typical Price (TP) = (High + Low + Close)/3
@@ -523,13 +525,23 @@ def get_CCI(rCandles, period=20, constant=0.015, dataType="numpy"):
 				rCandles["open"][i],
 				rCandles["high"][i],
 				rCandles["low"][i],
-				rCandles["close"][i]]for i in range(len(rCandles["open"]))]).astype(np.float)
+				rCandles["close"][i]] for i in range(len(rCandles["open"]))]).astype(np.float)
 
 	elif dataType == "numpy":
 		candles = rCandles
 
 	CCI = []
-	typicalPrice = np.array([((candle[2] + candle[3] + candle[4]) / 3) for candle in candles])
+
+	if source == 'high':
+		typicalPrice = np.array([candle[2] for candle in candles])
+	elif source == 'low':
+		typicalPrice = np.array([candle[3] for candle in candles])
+	elif source == 'close':
+		typicalPrice = np.array([candle[4] for candle in candles])
+	elif source == 'all':
+		typicalPrice = np.array([((candle[2] + candle[3] + candle[4]) / 3) for candle in candles])
+	else:
+		raise ValueError('Invalid CCI source. Make sure the CCI source is either; high, low, close, all')
 
 	MAD = get_Mean_ABS_Deviation(typicalPrice, period)
 	smTP = get_SMA(typicalPrice, period)
