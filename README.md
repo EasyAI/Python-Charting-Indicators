@@ -19,6 +19,7 @@ This repository contains a file used to calculate different indicators that can 
 - Ichimoku Cloud
 - Force Index
 - Commodity Channel Index (CCI)
+- Money Flow Index (MFI)
 
 ### Repository Contains:
 - TradeIndicators.py : This contains the main logic for calculation of the indicators.
