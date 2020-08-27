@@ -22,7 +22,7 @@ This repository contains a file used to calculate different indicators that can 
 - Money Flow Index (MFI)
 
 ### Repository Contains:
-- TradeIndicators.py : This contains the main logic for calculation of the indicators.
+- technical_indicators.py : This contains the main logic for calculation of the indicators.
 
 ## Usage
 The way that the data should be put threw in the case of requiring multiple elementes of the candle sticks, you'll need to style the lists to a dictionary formal like shown below:
