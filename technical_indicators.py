@@ -305,6 +305,50 @@ def get_MACD(prices, Efast=12, Eslow=26, signal=9):
 		"hist":float("{0}".format(histogram[i]))}) for i in range(len(signalLine))]
 
 
+## This function is used to calculate and return the the MACD indicator.
+def get_zeroLagMACD(prices, Efast=12, Eslow=26, signal=9):
+	"""
+	This function uses 5 parameters to calculate the Moving Average Convergence/Divergence-
+	
+	[PARAMETERS]
+		prices 	: A list of prices.
+		Efast	: Fast line type.
+		Eslow	: Slow line type.
+		signal 	: Signal line type.
+		ind_span: The span of the indicator.
+	
+	[CALCULATION]
+		MACDLine = (2 * EMA(price, FAST) - EMA(EMA(price, FAST), FAST)) - (2 * EMA(price, SLOW) - EMA(EMA(price, SLOW), SLOW))
+		SignalLine = 2 * EMA(MACD, SIG) - EMA(EMA(MACD, SIG), SIG))
+		Histogram = MACDLine - SignalLine
+
+	[RETURN]
+		[{
+		'fast':float,
+		'slow':float,
+		'his':float
+		}, ... ]
+	"""
+	zeroLag_MACD_PT1_Gfast = get_EMA(get_EMA(prices, Efast), Efast)
+	zeroLag_MACD_PT2_Gfast = (np.subtract(np.multiply(get_EMA(prices, Efast)[:len(zeroLag_MACD_PT1_Gfast)], 2), zeroLag_MACD_PT1_Gfast))
+
+	zeroLag_MACD_PT1_Gslow = get_EMA(get_EMA(prices, Eslow), Eslow)
+	zeroLag_MACD_PT2_Gslow = (np.subtract(np.multiply(get_EMA(prices, Efast)[:len(zeroLag_MACD_PT1_Gslow)], 2), zeroLag_MACD_PT1_Gslow))
+
+	lineMACD = np.subtract(zeroLag_MACD_PT2_fast[:len(zeroLag_MACD_PT2_slow)], zeroLag_MACD_PT2_slow)
+
+	zeroLag_SIG_PT1 = get_EMA(get_EMA(lineMACD, signal), signal)
+
+	lineSIGNAL = (np.subtract(np.multiply(get_EMA(lineMACD, signal)[:len(zeroLag_SIG_PT1)], 2), zeroLag_SIG_PT1))
+
+	histogram = np.subtract(lineMACD[:len(lineSIGNAL)], lineSIGNAL)
+
+	return [({
+		"macd":float("{0}".format(lineMACD[i])), 
+		"signal":float("{0}".format(lineSIGNAL[i])), 
+		"hist":float("{0}".format(histogram[i]))}) for i in range(len(lineSIGNAL))]
+
+
 ## This function is used to calculate and return the True Range.
 def get_trueRange(candles):
 	"""
