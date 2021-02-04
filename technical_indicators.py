@@ -278,7 +278,6 @@ def get_MACD(prices, Efast=12, Eslow=26, signal=9):
 		Efast	: Fast line type.
 		Eslow	: Slow line type.
 		signal 	: Signal line type.
-		ind_span: The span of the indicator.
 	
 	[CALCULATION]
 		MACDLine = fastEMA - slowEMA
@@ -315,7 +314,6 @@ def get_zeroLagMACD(prices, Efast=12, Eslow=26, signal=9):
 		Efast	: Fast line type.
 		Eslow	: Slow line type.
 		signal 	: Signal line type.
-		ind_span: The span of the indicator.
 	
 	[CALCULATION]
 		MACDLine = (2 * EMA(price, FAST) - EMA(EMA(price, FAST), FAST)) - (2 * EMA(price, SLOW) - EMA(EMA(price, SLOW), SLOW))
@@ -335,7 +333,7 @@ def get_zeroLagMACD(prices, Efast=12, Eslow=26, signal=9):
 	zeroLag_MACD_PT1_Gslow = get_EMA(get_EMA(prices, Eslow), Eslow)
 	zeroLag_MACD_PT2_Gslow = (np.subtract(np.multiply(get_EMA(prices, Efast)[:len(zeroLag_MACD_PT1_Gslow)], 2), zeroLag_MACD_PT1_Gslow))
 
-	lineMACD = np.subtract(zeroLag_MACD_PT2_fast[:len(zeroLag_MACD_PT2_slow)], zeroLag_MACD_PT2_slow)
+	lineMACD = np.subtract(zeroLag_MACD_PT2_Gfast[:len(zeroLag_MACD_PT2_Gslow)], zeroLag_MACD_PT2_Gslow)
 
 	zeroLag_SIG_PT1 = get_EMA(get_EMA(lineMACD, signal), signal)
 
