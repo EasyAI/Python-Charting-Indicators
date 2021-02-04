@@ -12,6 +12,7 @@ This repository contains a file used to calculate different indicators that can 
 - Exponential Moving Average (EMA)
 - SS
 - Moving Average Convergence Divergence (MACD)
+- ZeroLag MACD
 - TR
 - ATR
 - DM
