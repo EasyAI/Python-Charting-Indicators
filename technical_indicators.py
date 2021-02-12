@@ -304,10 +304,20 @@ def get_MACD(prices, Efast=12, Eslow=26, signal=9):
 		"hist":float("{0}".format(histogram[i]))}) for i in range(len(signalLine))]
 
 
+def get_DEMA(prices, maPeriod, prec=8):
+	EMA1 = get_EMA(prices, maPeriod)
+	EMA2 = get_EMA(EMA1, maPeriod)
+	DEMA = np.subtract ((2 * EMA1[:len(EMA2)]), EMA2)
+
+	return DEMA.round(prec)
+
+
 ## This function is used to calculate and return the the MACD indicator.
 def get_zeroLagMACD(prices, Efast=12, Eslow=26, signal=9):
 	"""
 	This function uses 5 parameters to calculate the Moving Average Convergence/Divergence-
+
+	Solution with thanks to @dsiens
 	
 	[PARAMETERS]
 		prices 	: A list of prices.
@@ -327,18 +337,10 @@ def get_zeroLagMACD(prices, Efast=12, Eslow=26, signal=9):
 		'his':float
 		}, ... ]
 	"""
-	zeroLag_MACD_PT1_Gfast = get_EMA(get_EMA(prices, Efast), Efast)
-	zeroLag_MACD_PT2_Gfast = (np.subtract(np.multiply(get_EMA(prices, Efast)[:len(zeroLag_MACD_PT1_Gfast)], 2), zeroLag_MACD_PT1_Gfast))
-
-	zeroLag_MACD_PT1_Gslow = get_EMA(get_EMA(prices, Eslow), Eslow)
-	zeroLag_MACD_PT2_Gslow = (np.subtract(np.multiply(get_EMA(prices, Efast)[:len(zeroLag_MACD_PT1_Gslow)], 2), zeroLag_MACD_PT1_Gslow))
-
-	lineMACD = np.subtract(zeroLag_MACD_PT2_Gfast[:len(zeroLag_MACD_PT2_Gslow)], zeroLag_MACD_PT2_Gslow)
-
-	zeroLag_SIG_PT1 = get_EMA(get_EMA(lineMACD, signal), signal)
-
-	lineSIGNAL = (np.subtract(np.multiply(get_EMA(lineMACD, signal)[:len(zeroLag_SIG_PT1)], 2), zeroLag_SIG_PT1))
-
+	z1 = get_DEMA(prices, Efast)
+	z2 = get_DEMA(prices, Eslow)
+	lineMACD = np.subtract (z1[:len(z2)], z2)
+	lineSIGNAL = get_DEMA (lineMACD, signal)
 	histogram = np.subtract(lineMACD[:len(lineSIGNAL)], lineSIGNAL)
 
 	return [({
