@@ -21,6 +21,8 @@ This repository contains a file used to calculate different indicators that can 
 - Force Index
 - Commodity Channel Index (CCI)
 - Money Flow Index (MFI)
+- Heiken Ashi Candles
+- Top/Bottoms finder
 
 ### Repository Contains:
 - technical_indicators.py : This contains the main logic for calculation of the indicators.
