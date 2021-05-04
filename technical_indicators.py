@@ -769,16 +769,26 @@ def get_heiken_ashi_candles(rCandles):
     return(heiken_ashi_candles)
 
 
-def get_tops_bottoms(candles, segment_span, price_point):
+def get_tops_bottoms(candles, segment_span, price_point, is_reverse=True):
     last_timestamp = 0
     read_complete = False
     data_points = []
+
+    if is_reverse:
+        candles = candles[::-1]
 
     c_move, last_val = ('up', 0) if candles[0][1] > candles[segment_span][1] else ('down', 999999)
     set_start = 0
 
     while not(read_complete):
         set_offset = set_start+segment_span
+
+        if price_point == 0:
+            val_index = 3 if c_move == 'down' else 2
+        elif price_point == 1:
+            val_index = 4
+        elif price_point == 2:
+            val_index = 1
 
         if set_offset < len(candles):
             set_end = set_offset
@@ -788,12 +798,6 @@ def get_tops_bottoms(candles, segment_span, price_point):
 
         c_set = np.asarray(candles[set_start:set_end])
 
-        if price_point == 0:
-            val_index = 3 if c_move == 'down' else 2
-        elif price_point == 1:
-            val_index = 4
-        elif price_point == 2:
-            val_index = 1
         find_result = find_high(c_set[:,val_index], last_val) if c_move == 'up' else find_low(c_set[:,val_index], last_val)
 
         if find_result:
@@ -804,11 +808,28 @@ def get_tops_bottoms(candles, segment_span, price_point):
             last_timestamp = c_set[time_index][0]
             last_val = find_result
             set_start += time_index+1
+
+            if read_complete:
+                data_points.append([int(last_timestamp), last_val])
+
         else:
             # Record the value to be used later.
             data_points.append([int(last_timestamp), last_val])
 
             # Switch between up and down.
             c_move, last_val = ('up', 0) if c_move == 'down' else ('down', 999999)
+
+    if is_reverse:
+        data_points = data_points[::-1]
+
+    if data_points[0][0] != candles[0][0]:
+        new_val_index = -1 if is_reverse else 0
+        if price_point == 0:
+            point_val = candles[new_val_index][3] if data_points[0][1] > data_points[1][1] else candles[new_val_index][2]
+        elif price_point == 1:
+            point_val = candles[new_val_index][4]
+        elif price_point == 2:
+            point_val = candles[new_val_index][1]
+        data_points.insert(0, [int(candles[new_val_index][0]), point_val])
     
-    return(data_points[::-1])
+    return(data_points)
