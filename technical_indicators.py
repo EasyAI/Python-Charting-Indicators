@@ -907,3 +907,26 @@ def get_tops_bottoms(candles, segment_span, price_point, is_reverse=True, map_ti
     data_points = data_points if map_time else [point[1] for point in data_points]
     
     return(data_points)
+
+
+def get_CPS(rCandles, dataType="numpy", map_time=False):
+    '''
+    
+    '''
+    if dataType == "normal":
+        candles = np.array([[0, 
+            rCandles["open"][i],
+            rCandles["high"][i],
+            rCandles["low"][i],
+            rCandles["close"][i],
+            rCandles["volume"][i]] for i in range(len(rCandles["open"]))]).astype(np.float)
+
+    elif dataType == "numpy":
+        candles = rCandles
+
+    candle_price_strength = [ (candle[5]/abs(candle[1]-candle[4])) for candle in candles ]
+
+    if map_time:
+       candle_price_strength = [ [ candles[i][0], candle_price_strength[i] ] for i in range(len(candle_price_strength)) ]
+
+    return(candle_price_strength)
