@@ -845,10 +845,12 @@ def get_tops_bottoms(candles, segment_span, price_point, is_reverse=False, map_t
     data_points = []
     last_timestamp = 0
 
-    if not(candles[0][0] > candles[-1][0]):
+    if not(candles[0][0] < candles[-1][0]):
         candles = candles[::-1]
 
-    c_move, last_val = ('up', 0) if candles[0][1] > candles[segment_span][1] else ('down', 999999)
+    data_points.append([int(candles[-1][0]), candles[-1][4]])
+
+    c_move, last_val = ('up', 0) if data_points[0][1] > candles[segment_span][4] else ('down', 999999)
     set_start = 0
 
     while not(read_complete):
@@ -889,16 +891,6 @@ def get_tops_bottoms(candles, segment_span, price_point, is_reverse=False, map_t
 
             # Switch between up and down.
             c_move, last_val = ('up', 0) if c_move == 'down' else ('down', 999999)
-
-    if price_point == 0:
-        point_val = candles[0][3] if data_points[0][1] > data_points[1][1] else candles[0][2]
-    elif price_point == 1:
-        point_val = candles[0][4]
-    elif price_point == 2:
-        point_val = candles[0][1]
-
-    if point_val != data_points[0][1]:
-        data_points.insert(0, [ int(candles[0][0]), point_val ])
 
     if is_reverse:
         data_points = data_points[::-1]
