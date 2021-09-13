@@ -26,44 +26,6 @@ import numpy as np
 - Ichimoku
 """
 
-'''
-x : Price list
-y : Last comparible value.
-z : Historic comparible value.
-
-# find_high_high
-( x : price list, y : last high, z : historic high value )
-Return highest value seen vs both recent and historically or None.
-
-# find_high
-( x : price list, y : last high )
-Return the highest value seen or None.
-
-# find_low_high
-( x : price list, y : last high, z : historic high value )
-Return highest value seen recently but lower historically or None.
-
-# find_low_low
-( x : price list, y : last low, z : historic low value )
-Return the lowest value seen vs both recent and historically or None.
-
-# find_low
-( x : price list, y : last low )
-Return the lowest value seen or None.
-
-# find_high_low
-( x : price list, y : last low, z : historic low value )
-Return lowest value seen recently but higher historically or None.
-'''
-## High setups
-find_high_high  = lambda x, y, z: x.max() if z < x.max() > y else None
-find_high       = lambda x, y: x.max() if x.max() > y else None
-find_low_high   = lambda x, y, z: x.max() if z > x.max() > y else None
-## Low setup
-find_low_low    = lambda x, y, z: x.min() if z > x.min() < y else None
-find_low        = lambda x, y: x.min() if x.min() < y else None
-find_high_low   = lambda x, y, z: x.min() if z < x.min() < y else None
-
 
 ## This function is used to calculate and return the Bollinger Band indicator.
 def get_BOLL(prices, time_values=None, ma_type=21, stDev=2, map_time=False):
@@ -840,22 +802,57 @@ def get_heiken_ashi_candles(rCandles, dataType="numpy"):
     return(heiken_ashi_candles)
 
 
-def get_tops_bottoms(candles, segment_span, price_point, is_reverse=False, map_time=False):
-    read_complete = False
+'''
+x : Price list
+y : Last comparible value.
+z : Historic comparible value.
+
+# find_high_high
+( x : price list, y : last high, z : historic high value )
+Return highest value seen vs both recent and historically or None.
+
+# find_high
+( x : price list, y : last high )
+Return the highest value seen or None.
+
+# find_low_high
+( x : price list, y : last high, z : historic high value )
+Return highest value seen recently but lower historically or None.
+
+# find_low_low
+( x : price list, y : last low, z : historic low value )
+Return the lowest value seen vs both recent and historically or None.
+
+# find_low
+( x : price list, y : last low )
+Return the lowest value seen or None.
+
+# find_high_low
+( x : price list, y : last low, z : historic low value )
+Return lowest value seen recently but higher historically or None.
+'''
+## High setups
+find_high_high  = lambda x, y, z: x.max() if z < x.max() > y else None
+find_high       = lambda x, y: x.max() if x.max() > y else None
+find_low_high   = lambda x, y, z: x.max() if z > x.max() > y else None
+## Low setup
+find_low_low    = lambda x, y, z: x.min() if z > x.min() < y else None
+find_low        = lambda x, y: x.min() if x.min() < y else None
+find_high_low   = lambda x, y, z: x.min() if z < x.min() < y else None
+
+
+def get_tops_bottoms(candles, segment_span, price_point, is_reverse=True, map_time=False):
     data_points = []
     last_timestamp = 0
 
     if not(candles[0][0] < candles[-1][0]):
         candles = candles[::-1]
 
-    data_points.append([int(candles[-1][0]), candles[-1][4]])
+    c_move = "up"
+    last_val = find_high(np.asarray(candles[0:segment_span])[:,1], 0)
+    set_start = 1
 
-    c_move, last_val = ('up', 0) if data_points[0][1] > candles[segment_span][4] else ('down', 999999)
-    set_start = 0
-
-    while not(read_complete):
-        set_offset = set_start+segment_span
-
+    while True:
         if price_point == 0:
             val_index = 3 if c_move == 'down' else 2
         elif price_point == 1:
@@ -863,34 +860,57 @@ def get_tops_bottoms(candles, segment_span, price_point, is_reverse=False, map_t
         elif price_point == 2:
             val_index = 1
 
-        if set_offset < len(candles):
-            set_end = set_offset
-        else:
+        # Get the range of candles.
+        set_offset = (set_start+segment_span)
+        if set_offset > len(candles):
             set_end = len(candles)
-            read_complete = True
+        else:
+            set_end = set_offset
 
-        c_set = np.asarray(candles[set_start:set_end])
+        base_candle_list = np.asarray(candles[set_start:set_end])
+        base_values_list = base_candle_list[:,val_index]
 
-        find_result = find_high(c_set[:,val_index], last_val) if c_move == 'up' else find_low(c_set[:,val_index], last_val)
+        # This section is used to split of if a higher high or lower low is seen.
+        new_end = None
+        if len(data_points) > 0:
+            if c_move == 'up':
+                find_new_end = find_low(base_values_list, data_points[-1][1])
+            else:
+                find_new_end = find_high(base_values_list, data_points[-1][1])
+                
+            if find_new_end:
+                new_end = np.where(base_values_list == find_new_end)[0][0]
+
+        if new_end:
+            current_values = base_values_list[:new_end]
+        else:
+            current_values = base_values_list
+
+        # Check for high/low values.
+        if c_move == 'up':
+            find_result = find_high(current_values, last_val)
+        else:
+            find_result = find_low(current_values, last_val)
 
         if find_result:
             # Used to find timestamp of new value.
-            time_index = np.where(c_set[:,val_index] == find_result)[0][0]
-
-            # Used for plotting.
-            last_timestamp = c_set[time_index][0]
+            time_index = np.where(current_values == find_result)[0][0]
+            last_timestamp = base_candle_list[time_index][0]
             last_val = find_result
             set_start += time_index+1
-
-            if read_complete:
-                data_points.append([ int(last_timestamp), last_val ])
 
         else:
             # Record the value to be used later.
             data_points.append([ int(last_timestamp), last_val ])
+            c_move = "down" if c_move == "up" else "up"
+            first_search = True
 
-            # Switch between up and down.
-            c_move, last_val = ('up', 0) if c_move == 'down' else ('down', 999999)
+        if set_end == len(candles):
+            data_points.append([ int(last_timestamp), last_val ])
+            break
+
+    if data_points[0][0] != int(candles[-1][0]):
+        data_points.append([int(candles[-1][0]), candles[-1][4]])
 
     if is_reverse:
         data_points = data_points[::-1]
